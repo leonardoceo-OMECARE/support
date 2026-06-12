@@ -540,6 +540,8 @@
   }
 
   function renderMarkdown(text) {
+    // Rendre les URLs cliquables
+    text = text.replace(/(https?:\/\/[^\s<>"]+)/g, '<a href="$1" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:underline;word-break:break-all;">$1</a>');
     return text
       .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
       .replace(/^(\d+)\. (.+)$/gm, '<li>$2</li>')
