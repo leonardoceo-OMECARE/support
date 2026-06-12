@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OMECARE — Support Médecins</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Fraunces:ital,wght@0,300;0,600;1,300&display=swap');
+
+  :root {
+    --bg:        #F7F6F3;
+    --surface:   #FFFFFF;
+    --border:    #E4E2DC;
+    --text:      #1A1917;
+    --muted:     #7A7874;
+    --accent:    #1B5E4B;
+    --accent-lt: #EAF2EF;
+    --user-bg:   #1B5E4B;
+    --user-text: #FFFFFF;
+    --bot-bg:    #FFFFFF;
+    --bot-text:  #1A1917;
+    --radius:    14px;
+    --radius-sm: 8px;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ── ACCESS GATE ── */
+  #gate {
+    position: fixed;
+    inset: 0;
+    background: var(--bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    padding: 24px;
+  }
+
+  .gate-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 36px 32px;
+    width: 100%;
+    max-width: 360px;
+    text-align: center;
+  }
+
+  .gate-logo {
+    width: 52px;
+    height: 52px;
+    background: var(--accent);
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 20px;
+  }
+
+  .gate-logo svg { width: 28px; height: 28px; }
+
+  .gate-title {
+    font-family: 'Fraunces', serif;
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    margin-bottom: 6px;
+  }
+
+  .gate-sub {
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 28px;
+    line-height: 1.5;
+  }
+
+  .gate-label {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    text-align: left;
+    margin-bottom: 8px;
+    display: block;
+  }
+
+  #codeInput {
+    width: 100%;
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 16px;
+    font-family: 'Inter', sans-serif;
+    font-size: 15px;
+    font-weight: 500;
+    letter-spacing: 0.15em;
+    text-align: center;
+    color: var(--text);
+    background: var(--bg);
+    outline: none;
+    transition: border-color 0.2s;
+    text-transform: uppercase;
+  }
+
+  #codeInput:focus { border-color: var(--accent); }
+
+  #codeError {
+    display: none;
+    font-size: 12px;
+    color: #C0392B;
+    margin-top: 8px;
+    text-align: center;
+  }
+
+  #submitCode {
+    width: 100%;
+    margin-top: 16px;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    padding: 13px;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+
+  #submitCode:hover { background: #174F3E; }
+
+  .gate-footer {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 20px;
+  }
+
+  /* ── APP ── */
+  #app {
+    display: none;
+    flex-direction: column;
+    flex: 1;
+    min-height: 100vh;
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+
+  .logo-mark {
+    width: 36px;
+    height: 36px;
+    background: var(--accent);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .logo-mark svg { width: 20px; height: 20px; }
+
+  .header-text { flex: 1; }
+
+  .header-title {
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: 16px;
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+  }
+
+  .header-sub {
+    font-size: 11px;
+    color: var(--muted);
+    font-weight: 400;
+    margin-top: 1px;
+  }
+
+  .status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #27AE60;
+    box-shadow: 0 0 0 3px rgba(39,174,96,0.18);
+    flex-shrink: 0;
+  }
+
+  /* ── QUICK ACTIONS ── */
+  .quick-bar {
+    padding: 12px 16px 0;
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .quick-chip {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 6px 13px;
+    font-size: 12.5px;
+    color: var(--text);
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+    white-space: nowrap;
+    font-weight: 400;
+  }
+
+  .quick-chip:hover {
+    background: var(--accent-lt);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  /* ── CHAT ZONE ── */
+  #chat {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px 16px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    scroll-behavior: smooth;
+  }
+
+  .welcome {
+    background: var(--accent-lt);
+    border: 1px solid #C6DDD8;
+    border-radius: var(--radius);
+    padding: 18px 20px;
+    margin-bottom: 4px;
+  }
+
+  .welcome-greeting {
+    font-family: 'Fraunces', serif;
+    font-weight: 300;
+    font-style: italic;
+    font-size: 17px;
+    color: var(--accent);
+    margin-bottom: 6px;
+  }
+
+  .welcome-body {
+    font-size: 13px;
+    color: #3A6B61;
+    line-height: 1.55;
+  }
+
+  .msg-row {
+    display: flex;
+    gap: 10px;
+    max-width: 100%;
+  }
+
+  .msg-row.user { flex-direction: row-reverse; }
+
+  .avatar {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 600;
+    margin-top: 2px;
+  }
+
+  .avatar.bot { background: var(--accent); color: #fff; }
+  .avatar.user-av { background: #D5EAE6; color: var(--accent); }
+
+  .bubble {
+    max-width: calc(100% - 50px);
+    padding: 11px 15px;
+    border-radius: var(--radius);
+    font-size: 14px;
+    line-height: 1.6;
+    word-break: break-word;
+  }
+
+  .msg-row.bot .bubble {
+    background: var(--bot-bg);
+    color: var(--bot-text);
+    border: 1px solid var(--border);
+    border-radius: var(--radius) var(--radius) var(--radius) 4px;
+  }
+
+  .msg-row.user .bubble {
+    background: var(--user-bg);
+    color: var(--user-text);
+    border-radius: var(--radius) var(--radius) 4px var(--radius);
+  }
+
+  .bubble strong { font-weight: 600; }
+  .bubble ol, .bubble ul { padding-left: 18px; margin-top: 6px; }
+  .bubble li { margin-bottom: 3px; }
+  .bubble p + p { margin-top: 8px; }
+
+  .typing-row { display: flex; gap: 10px; }
+
+  .typing-bubble {
+    background: var(--bot-bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius) var(--radius) var(--radius) 4px;
+    padding: 13px 18px;
+    display: flex;
+    gap: 5px;
+    align-items: center;
+  }
+
+  .dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--muted);
+    animation: bounce 1.2s infinite;
+  }
+
+  .dot:nth-child(2) { animation-delay: 0.2s; }
+  .dot:nth-child(3) { animation-delay: 0.4s; }
+
+  @keyframes bounce {
+    0%, 60%, 100% { transform: translateY(0); opacity: 0.5; }
+    30% { transform: translateY(-5px); opacity: 1; }
+  }
+
+  /* ── INPUT BAR ── */
+  .input-area {
+    padding: 12px 16px 16px;
+    background: var(--bg);
+    position: sticky;
+    bottom: 0;
+  }
+
+  .input-wrap {
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: 24px;
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+    padding: 8px 8px 8px 16px;
+    transition: border-color 0.2s;
+  }
+
+  .input-wrap:focus-within { border-color: var(--accent); }
+
+  #userInput {
+    flex: 1;
+    border: none;
+    outline: none;
+    background: transparent;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    color: var(--text);
+    resize: none;
+    max-height: 120px;
+    line-height: 1.5;
+    padding: 4px 0;
+  }
+
+  #userInput::placeholder { color: var(--muted); }
+
+  #sendBtn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--accent);
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: background 0.15s, transform 0.1s;
+  }
+
+  #sendBtn:hover { background: #174F3E; }
+  #sendBtn:active { transform: scale(0.94); }
+  #sendBtn:disabled { background: #C5D5D1; cursor: not-allowed; }
+  #sendBtn svg { width: 16px; height: 16px; }
+
+  .input-hint {
+    font-size: 11px;
+    color: var(--muted);
+    text-align: center;
+    margin-top: 7px;
+  }
+
+  .escalade-banner {
+    background: #FFF3F2;
+    border: 1px solid #F5C6C3;
+    border-radius: var(--radius-sm);
+    padding: 10px 14px;
+    font-size: 12.5px;
+    color: #8B2D27;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 4px;
+  }
+
+  #chat::-webkit-scrollbar { width: 4px; }
+  #chat::-webkit-scrollbar-track { background: transparent; }
+  #chat::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+  @media (min-width: 640px) {
+    #app { max-width: 520px; margin: 0 auto; box-shadow: 0 0 0 1px var(--border); }
+    #chat { padding: 20px 20px 0; }
+    .quick-bar { padding: 14px 20px 0; }
+    .input-area { padding: 12px 20px 20px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ACCESS GATE -->
+<div id="gate">
+  <div class="gate-card">
+    <div class="gate-title">Assistant Support OMECARE</div>
+    <div class="gate-sub">Espace réservé aux médecins<br>partenaires OMECARE</div>
+    <label class="gate-label" for="codeInput">Code d'accès</label>
+    <input type="password" id="codeInput" placeholder="••••••••••" autocomplete="off" />
+    <div id="codeError">Code incorrect. Contacte ton CSM OMECARE.</div>
+    <button id="submitCode">Accéder</button>
+    <div class="gate-footer">Besoin de ton code ? Contacte le support : 07 43 39 68 69</div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <header>
+    <div class="logo-mark"><svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M10 3v14M3 10h14" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/></svg></div>
+    <div class="header-text">
+      <div class="header-sub" style="margin-top:0">Assistant médecins — disponible 24h/24</div>
+    </div>
+    <div class="status-dot" title="En ligne"></div>
+  </header>
+
+  <div class="quick-bar">
+    <button class="quick-chip" onclick="sendQuick('Problème de facturation Doctolib')">🧾 Facturation</button>
+    <button class="quick-chip" onclick="sendQuick('Je n\'arrive pas à ouvrir le cabinet')">🔑 Ouverture</button>
+    <button class="quick-chip" onclick="sendQuick('Je n\'arrive pas à fermer le cabinet')">🚪 Fermeture</button>
+    <button class="quick-chip" onclick="sendQuick('Il me faut le code du poste informatique')">💻 Code PC</button>
+    <button class="quick-chip" onclick="sendQuick('Comment coter un dimanche ou jour férié ?')">📋 Cotation</button>
+  </div>
+
+  <div id="chat">
+    <div class="welcome">
+      <div class="welcome-greeting">Bonjour, confrère 👋</div>
+      <div class="welcome-body">Je suis ton assistant OMECARE. Je peux t'aider en temps réel pour : accès au cabinet, codes informatiques, problèmes de facturation, cotations, et tout imprévu pendant ta vacation.</div>
+    </div>
+  </div>
+
+  <div class="input-area">
+    <div class="input-wrap">
+      <textarea id="userInput" rows="1" placeholder="Décris ton problème…" onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+      <button id="sendBtn" onclick="sendMessage()" title="Envoyer">
+        <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M13.5 8L2.5 2.5l2.5 5.5-2.5 5.5L13.5 8z" fill="white"/>
+        </svg>
+      </button>
+    </div>
+    <div class="input-hint">Tes échanges restent confidentiels · OMECARE 2026</div>
+  </div>
+</div>
+
+<script>
+  const WEBHOOK_URL = 'https://omecare.app.n8n.cloud/webhook/76a05bd2-3263-4554-8a11-83406e22c610';
+  const ACCESS_CODE = 'OMECARE2026';
+
+  // ── ACCESS GATE ─────────────────────────────────────────────
+  function showApp() {
+    document.getElementById('gate').style.display = 'none';
+    document.getElementById('app').style.display = 'flex';
+    setTimeout(() => document.getElementById('userInput').focus(), 100);
+  }
+
+  function submitCode() {
+    const val = document.getElementById('codeInput').value.trim().toUpperCase();
+    if (val === ACCESS_CODE) {
+      sessionStorage.setItem('omecare_ok', '1');
+      showApp();
+    } else {
+      document.getElementById('codeError').style.display = 'block';
+      document.getElementById('codeInput').value = '';
+      document.getElementById('codeInput').focus();
+    }
+  }
+
+  document.getElementById('codeInput').addEventListener('keydown', e => {
+    document.getElementById('codeError').style.display = 'none';
+    if (e.key === 'Enter') submitCode();
+  });
+
+  document.getElementById('submitCode').addEventListener('click', submitCode);
+
+  if (sessionStorage.getItem('omecare_ok') === '1') showApp();
+
+  // ── CHAT ────────────────────────────────────────────────────
+  let conversationHistory = [];
+  let isLoading = false;
+
+  function autoResize(el) {
+    el.style.height = 'auto';
+    el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+  }
+
+  function handleKey(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  }
+
+  function scrollToBottom() {
+    const chat = document.getElementById('chat');
+    setTimeout(() => chat.scrollTop = chat.scrollHeight, 50);
+  }
+
+  function renderMarkdown(text) {
+    return text
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      .replace(/^(\d+)\. (.+)$/gm, '<li>$2</li>')
+      .replace(/^[-•] (.+)$/gm, '<li>$1</li>')
+      .replace(/((<li>.*<\/li>\n?)+)/g, '<ol>$1</ol>')
+      .replace(/\n\n/g, '</p><p>')
+      .replace(/\n/g, '<br>')
+      .replace(/^(?!<)(.+)/, '<p>$1</p>');
+  }
+
+  function appendMessage(role, text) {
+    const chat = document.getElementById('chat');
+    const row = document.createElement('div');
+    row.className = `msg-row ${role}`;
+    const av = document.createElement('div');
+    av.className = `avatar ${role === 'user' ? 'user-av' : 'bot'}`;
+    av.textContent = role === 'user' ? '👤' : '＋';
+    const bubble = document.createElement('div');
+    bubble.className = 'bubble';
+    bubble.innerHTML = renderMarkdown(text);
+    row.appendChild(av);
+    row.appendChild(bubble);
+    chat.appendChild(row);
+    scrollToBottom();
+  }
+
+  function showTyping() {
+    const chat = document.getElementById('chat');
+    const row = document.createElement('div');
+    row.className = 'typing-row';
+    row.id = 'typing';
+    const av = document.createElement('div');
+    av.className = 'avatar bot';
+    av.textContent = '＋';
+    const bubble = document.createElement('div');
+    bubble.className = 'typing-bubble';
+    bubble.innerHTML = '<div class="dot"></div><div class="dot"></div><div class="dot"></div>';
+    row.appendChild(av);
+    row.appendChild(bubble);
+    chat.appendChild(row);
+    scrollToBottom();
+  }
+
+  function hideTyping() {
+    const t = document.getElementById('typing');
+    if (t) t.remove();
+  }
+
+  async function sendMessage(overrideText) {
+    const input = document.getElementById('userInput');
+    const text = (overrideText !== undefined ? overrideText : input.value).trim();
+    if (!text || isLoading) return;
+
+    appendMessage('user', text);
+    input.value = '';
+    input.style.height = 'auto';
+
+    conversationHistory.push({ role: 'user', content: text });
+
+    isLoading = true;
+    document.getElementById('sendBtn').disabled = true;
+    showTyping();
+
+    try {
+      const payload = {
+        messages: conversationHistory.map(m => ({
+          role: m.role,
+          content: String(m.content || '')
+        }))
+      };
+
+      const res = await fetch(WEBHOOK_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+      const data = await res.json();
+      const reply = data.response
+        || data.message
+        || data.content?.[0]?.text
+        || 'Désolé, je n\'ai pas pu obtenir de réponse. Contacte le support au 07 43 39 68 69.';
+
+      hideTyping();
+      appendMessage('bot', reply);
+      conversationHistory.push({ role: 'assistant', content: reply });
+
+      const escaladeKeywords = ['camille', 'joanna', '01 76', 'slack'];
+      if (escaladeKeywords.some(k => reply.toLowerCase().includes(k))) {
+        showEscaladeBanner();
+      }
+
+    } catch (err) {
+      hideTyping();
+      appendMessage('bot', 'Problème de connexion. Réessaie dans quelques secondes ou contacte Camille / Joanna directement.');
+      console.error(err);
+    }
+
+    isLoading = false;
+    document.getElementById('sendBtn').disabled = false;
+    input.focus();
+  }
+
+  function sendQuick(text) {
+    if (!isLoading) sendMessage(text);
+  }
+
+  function showEscaladeBanner() {
+    const chat = document.getElementById('chat');
+    if (chat.querySelector('.escalade-banner')) return;
+    const banner = document.createElement('div');
+    banner.className = 'escalade-banner';
+    banner.innerHTML = '📞 <span><strong>Besoin d\'aide humaine ?</strong> L\'équipe OMECARE est joignable via 07 43 39 68 69 (SMS/appel).</span>';
+    chat.appendChild(banner);
+    scrollToBottom();
+  }
+</script>
+</body>
+</html>
