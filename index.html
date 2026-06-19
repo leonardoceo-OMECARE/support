@@ -331,6 +331,96 @@
     margin-top: 4px;
   }
 
+  /* ── LOGIN ── */
+  #login-screen {
+    position: fixed;
+    inset: 0;
+    background: var(--bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    padding: 24px;
+  }
+
+  .login-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 32px 28px;
+    width: 100%;
+    max-width: 340px;
+    text-align: center;
+  }
+
+  .login-logo {
+    width: 48px;
+    height: 48px;
+    background: var(--accent);
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 16px;
+  }
+
+  .login-logo svg { width: 26px; height: 26px; }
+
+  .login-title {
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: 20px;
+    margin-bottom: 6px;
+    color: var(--text);
+  }
+
+  .login-sub {
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 24px;
+    line-height: 1.5;
+  }
+
+  .login-input {
+    width: 100%;
+    padding: 11px 14px;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    color: var(--text);
+    background: var(--bg);
+    outline: none;
+    transition: border-color 0.2s;
+    margin-bottom: 12px;
+    letter-spacing: 0.05em;
+  }
+
+  .login-input:focus { border-color: var(--accent); }
+
+  .login-btn {
+    width: 100%;
+    padding: 11px;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius-sm);
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+
+  .login-btn:hover { background: #174F3E; }
+
+  .login-error {
+    font-size: 12.5px;
+    color: var(--danger);
+    margin-top: 10px;
+    min-height: 18px;
+  }
+
   /* ── SCROLLBAR ── */
   #chat::-webkit-scrollbar { width: 4px; }
   #chat::-webkit-scrollbar-track { background: transparent; }
@@ -346,6 +436,22 @@
 </style>
 </head>
 <body>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-logo">
+      <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M10 3v14M3 10h14" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <div class="login-title">OMECARE Support</div>
+    <div class="login-sub">Espace réservé aux médecins remplaçants.<br>Entrez le mot de passe pour accéder.</div>
+    <input type="password" id="passwordInput" class="login-input" placeholder="Mot de passe" onkeydown="if(event.key==='Enter') checkPassword()">
+    <button class="login-btn" onclick="checkPassword()">Accéder</button>
+    <div class="login-error" id="loginError"></div>
+  </div>
+</div>
 
 <!-- HEADER -->
 <header>
@@ -392,6 +498,23 @@
 </div>
 
 <script>
+  // ── LOGIN ────────────────────────────────────────────────────
+  const PASSWORD = 'Omecare2026';
+
+  function checkPassword() {
+    const input = document.getElementById('passwordInput').value;
+    if (input === PASSWORD) {
+      document.getElementById('login-screen').style.display = 'none';
+      document.getElementById('userInput').focus();
+    } else {
+      const err = document.getElementById('loginError');
+      err.textContent = 'Mot de passe incorrect. Réessaie.';
+      document.getElementById('passwordInput').value = '';
+      document.getElementById('passwordInput').focus();
+      setTimeout(() => err.textContent = '', 3000);
+    }
+  }
+
   // ── CONFIG ──────────────────────────────────────────────────
   // Remplace par l'URL de ton webhook n8n
   const WEBHOOK_URL = 'https://omecare.app.n8n.cloud/webhook/76a05bd2-3263-4554-8a11-83406e22c610';
